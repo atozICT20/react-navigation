@@ -70,5 +70,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "warn-once": "^0.1.0"
   }
 }

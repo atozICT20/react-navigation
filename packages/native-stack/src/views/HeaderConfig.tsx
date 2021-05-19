@@ -1,6 +1,5 @@
-import { Route, useTheme } from '@react-navigation/native';
 import * as React from 'react';
-import { Platform } from 'react-native';
+import { StyleSheet, I18nManager, Platform } from 'react-native';
 import {
   ScreenStackHeaderBackButtonImage,
   ScreenStackHeaderCenterView,
@@ -10,6 +9,7 @@ import {
   ScreenStackHeaderSearchBarView,
   SearchBar,
 } from 'react-native-screens';
+import { Route, useTheme } from '@react-navigation/native';
 import type { NativeStackNavigationOptions } from '../types';
 import { processFonts } from './FontProcessor';
 
@@ -18,31 +18,30 @@ type Props = NativeStackNavigationOptions & {
 };
 
 export default function HeaderConfig({
-  backButtonImage,
-  backButtonInCustomView,
-  direction,
+  headerBackImageSource,
   headerBackTitle,
-  headerBackTitleStyle = {},
+  headerBackTitleStyle,
   headerBackTitleVisible = true,
   headerCenter,
-  headerHideBackButton,
-  headerHideShadow,
-  headerLargeStyle = {},
+  headerBackVisible,
+  headerShadowVisible,
+  headerLargeStyle,
   headerLargeTitle,
   headerLargeTitleHideShadow,
-  headerLargeTitleStyle = {},
+  headerLargeTitleStyle,
   headerLeft,
   headerRight,
   headerShown,
-  headerStyle = {},
+  headerStyle,
+  headerBlurEffect,
   headerTintColor,
   headerTitle,
-  headerTitleStyle = {},
+  headerTitleStyle,
   headerTopInsetEnabled = true,
   headerTranslucent,
   route,
-  screenOrientation,
-  searchBar,
+  orientation,
+  headerSearchBar,
   statusBarAnimation,
   statusBarHidden,
   statusBarStyle,
@@ -51,39 +50,53 @@ export default function HeaderConfig({
   const { colors } = useTheme();
   const tintColor = headerTintColor ?? colors.primary;
 
+  const headerBackTitleStyleFlattened =
+    StyleSheet.flatten(headerBackTitleStyle) || {};
+  const headerLargeTitleStyleFlattened =
+    StyleSheet.flatten(headerLargeTitleStyle) || {};
+  const headerTitleStyleFlattened = StyleSheet.flatten(headerTitleStyle) || {};
+  const headerStyleFlattened = StyleSheet.flatten(headerStyle) || {};
+  const headerLargeStyleFlattened = StyleSheet.flatten(headerLargeStyle) || {};
+
   const [
     backTitleFontFamily,
     largeTitleFontFamily,
     titleFontFamily,
   ] = processFonts([
-    headerBackTitleStyle.fontFamily,
-    headerLargeTitleStyle.fontFamily,
-    headerTitleStyle.fontFamily,
+    headerBackTitleStyleFlattened.fontFamily,
+    headerLargeTitleStyleFlattened.fontFamily,
+    headerTitleStyleFlattened.fontFamily,
   ]);
+
+  const headerLeftElement = headerLeft?.({ tintColor });
+  const headerRightElement = headerRight?.({ tintColor });
+  const headerCenterElement = headerCenter?.({ tintColor });
 
   return (
     <ScreenStackHeaderConfig
-      backButtonInCustomView={backButtonInCustomView}
+      backButtonInCustomView={headerLeftElement != null && !headerBackVisible}
       backgroundColor={
-        headerStyle.backgroundColor ? headerStyle.backgroundColor : colors.card
+        headerStyleFlattened.backgroundColor
+          ? headerStyleFlattened.backgroundColor
+          : colors.card
       }
       backTitle={headerBackTitleVisible ? headerBackTitle : ' '}
       backTitleFontFamily={backTitleFontFamily}
-      backTitleFontSize={headerBackTitleStyle.fontSize}
-      blurEffect={headerStyle.blurEffect}
+      backTitleFontSize={headerBackTitleStyleFlattened.fontSize}
+      blurEffect={headerBlurEffect}
       color={tintColor}
-      direction={direction}
+      direction={I18nManager.isRTL ? 'rtl' : 'ltr'}
       hidden={headerShown === false}
-      hideBackButton={headerHideBackButton}
-      hideShadow={headerHideShadow}
+      hideBackButton={headerBackVisible}
+      hideShadow={headerShadowVisible}
       largeTitle={headerLargeTitle}
-      largeTitleBackgroundColor={headerLargeStyle.backgroundColor}
-      largeTitleColor={headerLargeTitleStyle.color}
+      largeTitleBackgroundColor={headerLargeStyleFlattened.backgroundColor}
+      largeTitleColor={headerLargeTitleStyleFlattened.color}
       largeTitleFontFamily={largeTitleFontFamily}
-      largeTitleFontSize={headerLargeTitleStyle.fontSize}
-      largeTitleFontWeight={headerLargeTitleStyle.fontWeight}
+      largeTitleFontSize={headerLargeTitleStyleFlattened.fontSize}
+      largeTitleFontWeight={headerLargeTitleStyleFlattened.fontWeight}
       largeTitleHideShadow={headerLargeTitleHideShadow}
-      screenOrientation={screenOrientation}
+      screenOrientation={orientation}
       statusBarAnimation={statusBarAnimation}
       statusBarHidden={statusBarHidden}
       statusBarStyle={statusBarStyle}
@@ -95,42 +108,42 @@ export default function HeaderConfig({
           : route.name
       }
       titleColor={
-        headerTitleStyle.color !== undefined
-          ? headerTitleStyle.color
+        headerTitleStyleFlattened.color !== undefined
+          ? headerTitleStyleFlattened.color
           : headerTintColor !== undefined
           ? headerTintColor
           : colors.text
       }
       titleFontFamily={titleFontFamily}
-      titleFontSize={headerTitleStyle.fontSize}
-      titleFontWeight={headerTitleStyle.fontWeight}
+      titleFontSize={headerTitleStyleFlattened.fontSize}
+      titleFontWeight={headerTitleStyleFlattened.fontWeight}
       topInsetEnabled={headerTopInsetEnabled}
       translucent={headerTranslucent === true}
     >
-      {headerRight !== undefined ? (
+      {headerRightElement != null ? (
         <ScreenStackHeaderRightView>
-          {headerRight({ tintColor })}
+          {headerRightElement}
         </ScreenStackHeaderRightView>
       ) : null}
-      {backButtonImage !== undefined ? (
+      {headerBackImageSource !== undefined ? (
         <ScreenStackHeaderBackButtonImage
           key="backImage"
-          source={backButtonImage}
+          source={headerBackImageSource}
         />
       ) : null}
-      {headerLeft !== undefined ? (
+      {headerLeftElement != null ? (
         <ScreenStackHeaderLeftView>
-          {headerLeft({ tintColor })}
+          {headerLeftElement}
         </ScreenStackHeaderLeftView>
       ) : null}
-      {headerCenter !== undefined ? (
+      {headerCenterElement != null ? (
         <ScreenStackHeaderCenterView>
-          {headerCenter({ tintColor })}
+          {headerCenterElement}
         </ScreenStackHeaderCenterView>
       ) : null}
-      {Platform.OS === 'ios' && searchBar !== undefined ? (
+      {Platform.OS === 'ios' && headerSearchBar !== undefined ? (
         <ScreenStackHeaderSearchBarView>
-          <SearchBar {...searchBar} />
+          <SearchBar {...headerSearchBar} />
         </ScreenStackHeaderSearchBarView>
       ) : null}
     </ScreenStackHeaderConfig>
